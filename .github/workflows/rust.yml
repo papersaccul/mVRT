@@ -1,0 +1,106 @@
+name: Rust CI/CD
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+  release:
+    types: [published]
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v4
+    - name: Install dependencies (Ubuntu)
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y libasound2-dev libx11-dev libxi-dev libgl1-mesa-dev
+    - name: Build
+      run: cargo build --verbose
+    - name: Run tests
+      run: cargo test --verbose
+
+  # Сборка для Windows
+  build-windows:
+    needs: test
+    runs-on: windows-latest
+    strategy:
+      matrix:
+        target: [x86_64-pc-windows-msvc]
+
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Install Rust target
+      run: rustup target add ${{ matrix.target }}
+      
+    - name: Build Release
+      run: cargo build --release --target ${{ matrix.target }} --verbose
+      
+    - name: Create release directory
+      run: |
+        mkdir release
+        copy target\${{ matrix.target }}\release\mVRT.exe release\
+        copy -Recurse assets release\assets\
+      
+    - name: Upload artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: mVRT-windows-${{ matrix.target }}
+        path: release/
+
+  release:
+    needs: build-windows
+    runs-on: ubuntu-latest
+    if: github.event_name == 'release' && github.event.action == 'published'
+
+    steps:
+    - name: Download Windows artifacts
+      uses: actions/download-artifact@v4
+      with:
+        name: mVRT-x86_64-pc-windows-msvc
+        path: dist/windows
+        
+    - name: Create ZIP archive
+      run: |
+        cd dist/windows
+        7z a ../mVRT-windows-x64.zip ./*
+        
+    - name: Upload release assets
+      uses: svenstaro/upload-release-action@v2
+      with:
+        repo_token: ${{ secrets.GITHUB_TOKEN }}
+        file: dist/mVRT-windows-x64.zip
+        asset_name: mVRT-windows-x64.zip
+        tag: ${{ github.ref }}
+        overwrite: true
+        
+  build-linux:
+    needs: test
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v4
+    - name: Build Linux release
+      run: cargo build --release --verbose
+    - name: Upload Linux artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: mVRT-linux
+        path: target/release/mVRT
+
+  lint:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v4
+    - name: Check formatting
+      run: cargo fmt -- --check
+    - name: Clippy check
+      run: cargo clippy -- -D warnings
