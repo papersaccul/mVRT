@@ -1,0 +1,23 @@
+{
+  "dpi": 1600.0,
+  "cm_360": 38.0,
+  "fov": 103.0,
+  "directional_light_illuminance": 4000.0,
+  "ambient_light_brightness": 250.0,
+  "crosshair_color": "#FF0000",
+  "crosshair_size": 10.0,
+  "crosshair_thickness": 2.0,
+  "arena_color": "#FFFFFF",
+  "target_color": "#000000",
+  "fresnel_enabled": true,
+  "fresnel_color": "#FFFF00",
+  "fresnel_intensity": 5.0,
+  "fresnel_power": 4.0,
+  "texture_file": "texture.png",
+  "font_file": "font.ttf",
+  "hit_sound_file": "hit.ogg",
+  "key_restart": "KeyR",
+  "key_start": "Space",
+  "key_settings": "Escape",
+  "key_fullscreen": "F12"
+}
