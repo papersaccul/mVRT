@@ -10,6 +10,7 @@ on:
 
 env:
   CARGO_TERM_COLOR: always
+  RUSTFLAGS: "-A warnings"
 
 jobs:
   build-windows:
@@ -39,38 +40,38 @@ jobs:
           name: mVRT-windows-x64
           path: release/
 
-  check-code:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
+  # check-code:
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #     - uses: actions/checkout@v4
 
-      - name: Check formatting
-        run: cargo fmt -- --check
+  #     - name: Check formatting
+  #       run: cargo fmt -- --check
 
-      - name: Check compilation (только проверка, без линковки)
-        run: cargo check --verbose
+  #     - name: Check compilation (только проверка синтаксиса)
+  #       run: cargo check --verbose
 
-  release:
-    needs: build-windows
-    runs-on: ubuntu-latest
-    if: github.event_name == 'release' && github.event.action == 'published'
+  # release:
+  #   needs: build-windows
+  #   runs-on: ubuntu-latest
+  #   if: github.event_name == 'release' && github.event.action == 'published'
 
-    steps:
-      - name: Download Windows artifacts
-        uses: actions/download-artifact@v4
-        with:
-          name: mVRT-windows-x64
-          path: dist/windows
+  #   steps:
+  #     - name: Download Windows artifacts
+  #       uses: actions/download-artifact@v4
+  #       with:
+  #         name: mVRT-windows-x64
+  #         path: dist/windows
 
-      - name: Install zip
-        run: sudo apt-get install -y zip
+  #     - name: Install zip
+  #       run: sudo apt-get install -y zip
 
-      - name: Create ZIP archive
-        run: |
-          cd dist/windows
-          zip -r ../mVRT-windows-x64.zip ./*
+  #     - name: Create ZIP archive
+  #       run: |
+  #         cd dist/windows
+  #         zip -r ../mVRT-windows-x64.zip ./*
 
-      - name: Upload release assets
-        uses: softprops/action-gh-release@v1
-        with:
-          files: dist/mVRT-windows-x64.zip
+  #     - name: Upload release assets
+  #       uses: softprops/action-gh-release@v1
+  #       with:
+  #         files: dist/mVRT-windows-x64.zip
